@@ -3,8 +3,7 @@ extends Node2D
 export (String, 'rain') var weatherType = 'sun'
 export (float, -1, 1) var wind = 0
 export (float, 0, 1) var size = 0.3
-export (int, 100, 3000) var amount = 3000
-export (bool) var delayWeatherChange = true # Wait light change before changing weather
+export (int, 100, 3000) var amount = 1000
 export (float, 1, 300) var weatherChangeTime = 2
 
 var nightColor: Color = Color.white # color SUBTRACTED to scene
@@ -13,7 +12,7 @@ var nightColor: Color = Color.white # color SUBTRACTED to scene
 # This way the weather effect will always be visible
 export var followNode: NodePath # = "../Player"
 
-onready var rain = $Snow
+onready var rain = $Rain
 onready var tween = $Tween
 
 # Emiter folows position of this node.
@@ -39,16 +38,11 @@ func _physics_process(_delta: float) -> void:
 func change_weather():
 
 	if weatherType == 'rain':
-		
 		change_amount(rain, amount)
 		apply_rain_settings()
 		rain.emitting = true
-		
 	else: 
 		rain.emitting = false
-
-		
-	# SETS LAST_AMOUNT FOR CHANGE CHECK
 	last_amount = amount
 	
 func apply_rain_settings():
@@ -58,10 +52,9 @@ func apply_rain_settings():
 	
 	# RAIN WIND SETTINGS
 	# 0.5 + abs(wind) / 2
-	change_wind_speed(rain, 0.5 + abs(wind) / 2 + size / 2) # rain.speed_scale = 0.5 + abs(wind) / 2 + size / 2
+	change_wind_speed(rain, 0.5 + abs(wind) / 2) # rain.speed_scale = 0.5 + abs(wind) / 2 + size / 2
 	change_wind_direction(rain, wind) # rain.process_material.direction.x = wind
-	rain.process_material.gravity.x = 200 * wind
-	# rain.process_material.initial_velocity = 200 + 400 * abs(wind)	
+	rain.process_material.gravity.x = 10 * wind
 
 func change_size(weather, new_size):
 	
@@ -81,12 +74,12 @@ func change_wind_direction(weather, new_wind):
 	
 	tween.interpolate_property(weather, "process_material:direction:x",
 	weather.process_material.direction.x, new_wind, weatherChangeTime,
-	Tween.TRANS_LINEAR, Tween.EASE_IN_OUT)
+	Tween.TRANS_SINE, Tween.EASE_IN_OUT)
 	tween.start()
 
 func change_wind_speed(weather, new_speed):
 	
 	tween.interpolate_property(weather, "speed_scale",
 	weather.speed_scale, new_speed, weatherChangeTime,
-	Tween.TRANS_SINE, Tween.EASE_IN_OUT)
+	Tween.TRANS_BOUNCE, Tween.EASE_IN_OUT)
 	tween.start()
